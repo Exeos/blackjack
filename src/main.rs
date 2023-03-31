@@ -37,6 +37,7 @@ fn run_loop(card_deck: &mut Vec<PlayCard>, player_deck: &mut Vec<PlayCard>, deal
         let mut game_result = result(player_deck, dealer_deck);
 
         if game_result.0 {
+            clear().expect("Failed to clear screen!");
             send_state("Blackjack! You won.", player_deck, dealer_deck);
             restart(player_deck, dealer_deck);
             continue;
@@ -52,6 +53,7 @@ fn run_loop(card_deck: &mut Vec<PlayCard>, player_deck: &mut Vec<PlayCard>, deal
                 "hit" => {
                     add_card(player_deck, card_deck);
                     if get_total_value(player_deck) > 21 {
+                        clear().expect("Failed to clear screen!");
                         send_state("Bust! You lost.", player_deck, card_deck);
                         restart(player_deck, dealer_deck);
                         break 'game_loop;
@@ -147,7 +149,6 @@ fn get_total_value(deck: &mut Vec<PlayCard>) -> u8 {
 fn restart(player_deck: &mut Vec<PlayCard>, dealer_deck: &mut Vec<PlayCard>) {
     let mut input = String::new();
 
-    clear().expect("Failed to clear screen!");
     println!();
     println!("Do you want to play again?");
     io::stdin().read_line(&mut input).unwrap();
@@ -155,7 +156,7 @@ fn restart(player_deck: &mut Vec<PlayCard>, dealer_deck: &mut Vec<PlayCard>) {
         println!("Thank you for playing!");
         exit(0);
     }
-    
+
     clear().expect("Failed to clear screen!");
     player_deck.clear();
     dealer_deck.clear();
