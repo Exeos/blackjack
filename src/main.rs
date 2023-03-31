@@ -27,9 +27,7 @@ fn main() {
 }
 
 fn run_loop(card_deck: &mut Vec<PlayCard>, player_deck: &mut Vec<PlayCard>, dealer_deck: &mut Vec<PlayCard>) {
-    let mut running = true;
-
-    'game_loop: while running {
+    'game_loop: loop {
         add_card(player_deck, card_deck); // player
         add_card(player_deck, card_deck); // player
         add_card(dealer_deck, card_deck); // dealer
@@ -43,7 +41,7 @@ fn run_loop(card_deck: &mut Vec<PlayCard>, player_deck: &mut Vec<PlayCard>, deal
             continue;
         }
 
-        'playing: loop {
+        'play_loop: loop {
             let mut input = String::new();
 
             send_state("Do you want to hit or stay", player_deck, dealer_deck);
@@ -60,12 +58,12 @@ fn run_loop(card_deck: &mut Vec<PlayCard>, player_deck: &mut Vec<PlayCard>, deal
                     }
                     clear().expect("Failed to clear screen!");
                 }
-                "stay" => { break 'playing; }
+                "stay" => { break 'play_loop; }
                 _ => {
                     clear().expect("Failed to clear screen!");
                     println!("Invalid input! Use 'hit' or 'stay'");
                     println!();
-                    continue 'playing;
+                    continue 'play_loop;
                 }
             }
         }
