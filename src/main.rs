@@ -88,7 +88,7 @@ fn run_loop(card_deck: &mut Vec<PlayCard>, player_deck: &mut Vec<PlayCard>, deal
         if game_result.0 {
             send_state(if get_total_value(dealer_deck) > 21 { "Bust! You won." } else { "You won." }, player_deck, dealer_deck);
         } else {
-            send_state("You lost!", player_deck, dealer_deck);
+            send_state( if get_total_value(player_deck) == get_total_value(dealer_deck) { "Tie!" } else { "You lost!" }, player_deck, dealer_deck);
         }
         restart(player_deck, dealer_deck);
     }
