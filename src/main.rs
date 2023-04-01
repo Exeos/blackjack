@@ -4,12 +4,35 @@ use std::process::exit;
 
 use clearscreen::{clear, is_windows_10};
 
+use string_builder::Builder;
+
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
+#[derive(PartialEq, Eq, Clone)]
 struct PlayCard {
     value: u8,
     c_type: PCardType,
+}
+
+impl PlayCard {
+    fn new(value: u8, c_type: PCardType) -> PlayCard {
+        PlayCard { value, c_type }
+    }
+
+    fn stringify(&self) -> String {
+        match self.c_type {
+            PCardType::Ace => "Ace".to_string(),
+            PCardType::Jack => "Jack".to_string(),
+            PCardType::Queen => "Queen".to_string(),
+            PCardType::King => "King".to_string(),
+            _ =>  self.value.to_string()
+        }
+    }
+
+    fn eq(&self, other: &PlayCard) -> bool {
+        self.value == other.value && self.c_type == other.c_type
+    }
 }
 
 #[derive(Debug, EnumIter, PartialEq, Eq, Clone, Copy)]
@@ -52,9 +75,9 @@ fn run_loop(card_deck: &mut Vec<PlayCard>, player_deck: &mut Vec<PlayCard>, deal
                     add_card(player_deck, card_deck);
                     if get_total_value(player_deck) > 21 {
                         clear().expect("Failed to clear screen!");
-                        send_state("Bust! You lost.", player_deck, card_deck);
+                        send_state("Bust! You lost.", player_deck, dealer_deck);
                         restart(player_deck, dealer_deck);
-                        break 'game_loop;
+                        continue 'game_loop;
                     }
                     clear().expect("Failed to clear screen!");
                 }
@@ -69,13 +92,13 @@ fn run_loop(card_deck: &mut Vec<PlayCard>, player_deck: &mut Vec<PlayCard>, deal
         }
 
         clear().expect("Failed to clear screen!");
-        println!("Dealer: {}", get_total_value(dealer_deck));
+        println!("Dealer: {} -> [{}]", get_total_value(dealer_deck), get_cards(dealer_deck));
         sleep(time::Duration::from_millis(1000));
         while get_total_value(dealer_deck) < 16 {
             add_card(dealer_deck, card_deck);
 
             clear().expect("Failed to clear screen!");
-            println!("Dealer: {}", get_total_value(dealer_deck));
+            println!("Dealer: {} -> [{}]", get_total_value(dealer_deck), get_cards(dealer_deck));
             sleep(time::Duration::from_millis(
                 if (get_total_value(dealer_deck)) < 16 { 500 } else { 1000 },
             ));
@@ -121,8 +144,22 @@ fn result(player_deck: &mut Vec<PlayCard>, dealer_deck: &mut Vec<PlayCard>) -> (
 
 fn send_state(message: &str, player_deck: &mut Vec<PlayCard>, dealer_deck: &mut Vec<PlayCard>) {
     println!("{message}");
-    println!(" - dealer: {}", get_total_value(dealer_deck));
-    println!(" - you: {}", get_total_value(player_deck));
+    println!(" - dealer:   {} -> [{}]", get_total_value(dealer_deck), get_cards(dealer_deck));
+    println!(" - you:      {} -> [{}]", get_total_value(player_deck), get_cards(player_deck));
+}
+
+fn get_cards(deck: &mut Vec<PlayCard>) -> String {
+    let mut deck_builder = Builder::default();
+    let mut index: u8 = 0;
+
+    for card in &*deck {
+        deck_builder.append(card.stringify());
+        if index != (deck.len() - 1) as u8 {
+            deck_builder.append(", ");
+        }
+        index += 1;
+    }
+    deck_builder.string().unwrap()
 }
 
 fn get_total_value(deck: &mut Vec<PlayCard>) -> u8 {
@@ -150,7 +187,7 @@ fn restart(player_deck: &mut Vec<PlayCard>, dealer_deck: &mut Vec<PlayCard>) {
     println!();
     println!("Do you want to play again?");
     io::stdin().read_line(&mut input).unwrap();
-    if !input.to_lowercase().starts_with("y") {
+    if input.to_lowercase().starts_with("n") {
         println!("Thank you for playing!");
         exit(0);
     }
@@ -162,25 +199,16 @@ fn restart(player_deck: &mut Vec<PlayCard>, dealer_deck: &mut Vec<PlayCard>) {
 
 fn add_card(target_deck: &mut Vec<PlayCard>, card_deck: &mut Vec<PlayCard>) {
     let card = card_deck.get(rand::thread_rng().gen_range(0..12)).unwrap();
-    target_deck.push(PlayCard {
-        value: card.value,
-        c_type: card.c_type,
-    });
+    target_deck.push(PlayCard::new(card.value, card.c_type));
 }
 
 fn init_cards(card_deck: &mut Vec<PlayCard>) {
     for i in 2..11 {
-        card_deck.push(PlayCard {
-            value: i,
-            c_type: PCardType::Normal,
-        });
+        card_deck.push(PlayCard::new (i, PCardType::Normal));
     }
     for special in PCardType::iter() {
         if special != PCardType::Normal {
-            card_deck.push(PlayCard {
-                value: 10,
-                c_type: special,
-            });
+            card_deck.push(PlayCard::new (10, special));
         }
     }
 }
