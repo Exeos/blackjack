@@ -1,3 +1,3 @@
 # blackjack
-Blackjack in the terminal. Also first project in Rust.
+Blackjack in the terminal. My first project in Rust.
 
